@@ -25,7 +25,8 @@ import {
   getAnnotations,
   getAnnotationsByModel,
   updateAnnotation,
-  deleteAnnotation
+  deleteAnnotation,
+  clearDatabase
 } from "./db";
 
 const dbName = "dev.sqlite3"
@@ -112,6 +113,15 @@ app.delete("/annotations/:id", (req, res) => {
     res.status(404).send("Annotation not found");
   } else {
     res.send("Annotation deleted");
+  }
+});
+
+app.post("/db/clear", async (_, res) => {
+  try {
+    await clearDatabase(dbPath);
+    res.send("Database cleared and reinitialized");
+  } catch (error) {
+    res.status(500).send("Error clearing database");
   }
 });
 

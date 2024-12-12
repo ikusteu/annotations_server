@@ -8,16 +8,18 @@ function getSchema(): string {
   return fs.readFileSync(fpath, "utf8")
 }
 
-export function deleteAnnotation(db: Database, id: number) {
-  const operatorStmt = db.prepare("DELETE FROM annotation_operator WHERE annotation_id = ?");
-  operatorStmt.run(id);
-
-  const modelStmt = db.prepare("DELETE FROM model_annotation WHERE annotation_id = ?");
-  modelStmt.run(id);
-
-  const stmt = db.prepare("DELETE FROM annotation WHERE id = ?");
-  return stmt.run(id);
+export function clearDatabase(fpath: string) {
+  if (dbCache.has(fpath)) {
+    const db = dbCache.get(fpath);
+    db?.close();
+    dbCache.delete(fpath);
+  }
+  if (fs.existsSync(fpath)) {
+    fs.unlinkSync(fpath);
+  }
+  return getInitializedDB(fpath);
 }
+
 
 const dbCache = new Map<string, Database>()
 
@@ -126,3 +128,13 @@ export function updateAnnotation(db: Database, id: number, data: Partial<{ x: nu
   return result;
 }
 
+export function deleteAnnotation(db: Database, id: number) {
+  const operatorStmt = db.prepare("DELETE FROM annotation_operator WHERE annotation_id = ?");
+  operatorStmt.run(id);
+
+  const modelStmt = db.prepare("DELETE FROM model_annotation WHERE annotation_id = ?");
+  modelStmt.run(id);
+
+  const stmt = db.prepare("DELETE FROM annotation WHERE id = ?");
+  return stmt.run(id);
+}
